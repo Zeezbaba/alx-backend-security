@@ -1,5 +1,5 @@
 from django.utils.timezone import now
-from .models import RequestLog
+from .models import RequestLog, BlockedIP
 
 class IPTracker:
     def __init__(self, get_response):
@@ -7,6 +7,11 @@ class IPTracker:
 
     def __call__(self, request):
         ip = self.get_client_ip(request)
+
+        # check if ip is blocked
+        if BlockedIP.objects.filter(ip_address=ip).exists():
+            return HttpResponseForbidden("Access Denied!. Your IP is blocked")
+
         path = request.path
         timestamp = now()
 
